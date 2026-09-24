@@ -35,13 +35,13 @@ const register = async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'greenrootp@gmail.com',
-                pass: 'weifglbjhwgzofym',
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
             }
         });
 
         const mailOptions = {
-            from: 'greenrootp@gmail.com',
+            from: process.env.EMAIL_USER,
             to: email,
             subject: 'Welcome to GreenRoots',
             html: `
