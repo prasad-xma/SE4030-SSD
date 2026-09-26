@@ -2,8 +2,8 @@ import React from "react";
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 
-// Initialize Stripe with your public key (replace with your actual key)
-const stripePromise = loadStripe('pk_test_51R5p89RvsikKtmloiLC3Fvftp1daEyZtpOuFqXbCxbVCmIeI7V9fYRBnxK8zOi2y6xypm5KLsOlX7CAqLQNGlY3S00nJl1yKKt'); // Replace with your Stripe public key
+// Stripe publishable key comes from frontend/.env (see .env.example)
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const Cart = ({ cart, onClose, onRemoveItem }) => {
   const cartItems = cart ? cart.items : [];
