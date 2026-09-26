@@ -1,5 +1,5 @@
 import React from "react";
-import StockChart from "./StockChart";
+import StockChart from "./Stockchart";
 import { Link, useParams } from "react-router-dom";
 
 function StockchartFrame() {
