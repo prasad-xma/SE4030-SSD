@@ -4,7 +4,6 @@ import PnDForm from '../components/PnDForm'
 import PnDCardR from '../components/PnDCardR'
 import { useNavigate } from 'react-router-dom';
 import { getResearcherId } from '../utils/auth';
-import Cookies from 'js-cookie';
 
 export default function MyPnd() {
 
@@ -25,9 +24,6 @@ export default function MyPnd() {
     const fetchPnd = async () => {
       try {
         const response = await fetch(`http://localhost:3000/api/researcher/pnd/my-pnd`, {
-          headers: {
-            'Authorization': `Bearer ${Cookies.get('authToken')}`
-          },
           credentials: 'include'
         });
         

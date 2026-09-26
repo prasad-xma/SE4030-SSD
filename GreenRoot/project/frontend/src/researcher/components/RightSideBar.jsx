@@ -3,7 +3,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import ResearcherProfilePic from "../extras/researcherprofilepic.jpg";
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { logout } from "@/Common/authSession";
 
 export default function RightSidebar({ userData: userID }) {
   const [userData, setUserData] = useState(null);
@@ -47,9 +47,9 @@ export default function RightSidebar({ userData: userID }) {
     fetchUserData();
   }, [userID]);
 
-  const handleLogout = () => {
-    // 1. Remove auth token from cookies
-    Cookies.remove('authToken');
+  const handleLogout = async () => {
+    // 1. Ask the server to clear the HttpOnly auth cookie
+    await logout();
     
     // 2. Clear any user data from state
     setUserData(null);

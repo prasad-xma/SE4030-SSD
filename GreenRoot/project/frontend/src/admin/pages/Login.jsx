@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
-import Cookies from "js-cookie";
+import { setAuthUser } from "@/Common/authSession";
 import Swal from "sweetalert2";
 // import loginImg from "../extras/loginImage.svg";
 import NavBar2 from "@/Common/NavBar2";
@@ -29,8 +29,8 @@ const Login = () => {
       );
 
       if (response.status === 200) {
-        const token = Cookies.get("authToken");
-        console.log("JWT TOKEN:", token);
+        const user = response.data.data; // { id, role } - the token itself is HttpOnly
+        setAuthUser(user);
         Swal.fire({
           title: "Login successfull!",
           text: "",
@@ -39,20 +39,16 @@ const Login = () => {
           icon: "success",
         });
 
-        if (token) {
-          const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
-          // console.log(payload.role);
-          // console.log(payload.userId);
-
-          switch (payload.role) {
+        if (user) {
+          switch (user.role) {
             case "admin":
-              navigate(`/admin/${payload.userId}/dashboard`);
+              navigate(`/admin/${user.id}/dashboard`);
               break;
             case "farmer":
-              navigate(`/farmer/${payload.userId}/dashboard`);
+              navigate(`/farmer/${user.id}/dashboard`);
               break;
             case "seller":
-              navigate(`/seller/${payload.userId}/home`);
+              navigate(`/seller/${user.id}/home`);
               break;
             case "researcher":
               navigate(`/researcher`);

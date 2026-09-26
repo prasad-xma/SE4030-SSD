@@ -1,28 +1,17 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
+import { fetchCurrentUser } from "@/Common/authSession";
 
 const useAuth = (allowedRole) => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = Cookies.get("authToken");
-
-        if (!token) {
-            navigate("/auth/login"); // Redirect to login
-            return;
-        }
-
-        try {
-            const payload = JSON.parse(atob(token.split(".")[1]));
-
-            if (payload.role !== allowedRole) {
-                navigate("/auth/login"); // Redirect if role doesn't match
+        // the backend validates the HttpOnly cookie and returns the user's role
+        fetchCurrentUser().then((user) => {
+            if (!user || user.role !== allowedRole) {
+                navigate("/auth/login"); // Redirect if not logged in or role doesn't match
             }
-        } catch (error) {
-            console.error("Invalid token:", error);
-            navigate("/auth/login");
-        }
+        });
     }, [navigate, allowedRole]);
 };
 
