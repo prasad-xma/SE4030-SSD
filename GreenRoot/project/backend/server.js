@@ -88,6 +88,10 @@ const MapSellerFarmers = require("./seller/routes/fieldRoutes.js");
 const mongoURL = process.env.mongoURL;
 const port = process.env.PORT;
 
+if (!mongoURL) {
+  throw new Error("MongoDB connection string is missing!");
+}
+
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -158,5 +162,5 @@ mongoose
     });
   })
   .catch((e) => {
-    console.log("Not Connected!");
+    console.error("MongoDB connection failed:", e.message);
   });
