@@ -5,7 +5,7 @@ import Sidebar from "./Common/Sidebar";
 {
   /* Farmer Pages imports */
 }
-import OtpPage from "./Common/pages/otpPage";
+import OtpPage from "./Common/pages/OtpPage";
 import PaySuccess from "./farmer/utills/PaySuccess";
 import {
   FarmerHome,
