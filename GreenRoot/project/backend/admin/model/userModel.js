@@ -41,4 +41,13 @@ const userSchema = new Schema({
     },
 }, { timestamps: true });
 
+// Automatically remove sensitive password hash and internal fields on JSON serialization
+userSchema.set("toJSON", {
+    transform: function (doc, ret) {
+        delete ret.password;
+        delete ret.__v;
+        return ret;
+    }
+});
+
 module.exports = mongoose.model("User", userSchema);
