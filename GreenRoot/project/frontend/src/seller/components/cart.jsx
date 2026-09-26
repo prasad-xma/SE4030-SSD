@@ -2,7 +2,7 @@ import React from "react";
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 
-// Stripe publishable key comes from frontend/.env (see .env.example)
+// Initialize Stripe with your public key (replace with your actual key)
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const Cart = ({ cart, onClose, onRemoveItem }) => {

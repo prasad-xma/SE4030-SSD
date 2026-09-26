@@ -2,8 +2,6 @@ const User = require("../model/userModel.js");
 const { hashPassword, comparePassword } = require("../utils/passwordUtils.js");
 const { createJWToken } = require("../utils/tokenUtils.js");
 
-// Auth cookie flags: HttpOnly keeps the JWT out of reach of JavaScript (XSS),
-// Secure sends it over HTTPS only in production, SameSite=Strict blocks CSRF.
 const authCookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -134,7 +132,6 @@ const logout = (req, res) => {
     }
 };
 
-// return the logged in user's id and role (the token itself is HttpOnly and cannot be read by the frontend)
 const getCurrentUser = (req, res) => {
     res.status(200).json({ data: { id: req.user.userId, role: req.user.role } });
 };

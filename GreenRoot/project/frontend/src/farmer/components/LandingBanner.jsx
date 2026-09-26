@@ -19,7 +19,7 @@ function LandingBanner() {
       })
       .then((res) => {
         if (res.status === 200) {
-          const user = res.data.data; // { id, role } - the token itself is HttpOnly
+          const user = res.data.data;
           if (user) {
             setAuthUser(user);
 

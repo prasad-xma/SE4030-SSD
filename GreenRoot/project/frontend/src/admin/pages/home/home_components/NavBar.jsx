@@ -10,14 +10,12 @@ const NavBar = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const navigate = useNavigate();
 
-    // check if a user is logged in
     useEffect(() => {
         setIsAuthenticated(!!getAuthUser());
     }, []);
 
     // logout function
     const handleLogout = async () => {
-        // the HttpOnly cookie can only be cleared by the server
         await logout();
         setIsAuthenticated(false);
         navigate("/");

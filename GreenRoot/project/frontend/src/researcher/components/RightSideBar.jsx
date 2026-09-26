@@ -48,7 +48,7 @@ export default function RightSidebar({ userData: userID }) {
   }, [userID]);
 
   const handleLogout = async () => {
-    // 1. Ask the server to clear the HttpOnly auth cookie
+    // 1. Remove auth token from cookies
     await logout();
     
     // 2. Clear any user data from state

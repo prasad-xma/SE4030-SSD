@@ -29,7 +29,7 @@ const Login = () => {
       );
 
       if (response.status === 200) {
-        const user = response.data.data; // { id, role } - the token itself is HttpOnly
+        const user = response.data.data;
         setAuthUser(user);
         Swal.fire({
           title: "Login successfull!",
