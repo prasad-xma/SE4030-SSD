@@ -2,6 +2,32 @@ const mongoose = require("mongoose");
 
 const TICKET = require("../model/ticketModel");
 
+const getAllowedTicketFields = (source, fields) => {
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    return { values: {}, hasInvalidValue: true };
+    
+  }
+
+  const values = {};
+  let hasInvalidValue = false;
+
+  fields.forEach((field) => {
+    if (Object.prototype.hasOwnProperty.call(source, field)) {
+      if (typeof source[field] !== "string") {
+        hasInvalidValue = true;
+        return;
+
+
+      }
+      values[field] = source[field].trim();
+    }
+  });
+
+  return { values, hasInvalidValue };
+
+
+};
+
 //Get all tickets
 
 const allTickets = async (req, res) => {
@@ -23,7 +49,21 @@ const allTickets = async (req, res) => {
 
 const ticketsByParams = async (req, res) => {
   try {
-    const tickets = await TICKET.find(req.body);
+    const { values: filters, hasInvalidValue } = getAllowedTicketFields(
+      req.body,
+      ["subject", "description", "priority", "image", "farmerID"]
+    );
+
+    if (
+      hasInvalidValue ||
+      Object.keys(filters).length === 0 ||
+      Object.values(filters).some((value) => value.length === 0)
+    ) {
+      res.status(400).json({ msg: "Invalid ticket filters" });
+      return;
+    }
+
+    const tickets = await TICKET.find(filters);
 
     if (tickets.length <= 0) {
       res.status(404).json({ msg: "Not found!" });
@@ -32,7 +72,7 @@ const ticketsByParams = async (req, res) => {
 
     res.status(200).json({ msg: "Success", data: tickets });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
@@ -77,7 +117,21 @@ const insertTICKET = async (req, res) => {
 const updateTICKET = async (req, res) => {
   try {
     const { id } = req.params;
-    const tickets = await TICKET.findByIdAndUpdate(id, req.body, { new: true });
+    const { values: updates, hasInvalidValue } = getAllowedTicketFields(
+      req.body,
+      ["subject", "description", "priority", "image"]
+    );
+
+    if (
+      hasInvalidValue ||
+      Object.keys(updates).length === 0 ||
+      Object.values(updates).some((value) => value.length === 0)
+    ) {
+      res.status(400).json({ msg: "Invalid ticket update" });
+      return;
+    }
+
+    const tickets = await TICKET.findByIdAndUpdate(id, updates, { new: true });
     if (!tickets) {
       res.status(404).json({ msg: "field not Updated!" });
 
@@ -86,7 +140,7 @@ const updateTICKET = async (req, res) => {
 
     res.status(200).json({ msg: "Update Successful", data: tickets });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 

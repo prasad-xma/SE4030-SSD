@@ -5,6 +5,60 @@ const path = require("path");
 
 const ORDER = require("../../seller/model/bulkOrderModel");
 
+const getAllowedOrderFields = (source, fields) => {
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    return { values: {}, hasInvalidValue: true };
+  }
+
+  const values = {};
+  let hasInvalidValue = false;
+
+  fields.forEach(([field, type]) => {
+    if (!Object.prototype.hasOwnProperty.call(source, field)) {
+      return;
+
+    }
+
+    const value = source[field];
+    if (type === "string") {
+      if (typeof value !== "string" || value.trim().length === 0) {
+        hasInvalidValue = true;
+        return;
+
+
+      }
+      values[field] = value.trim();
+
+      return;
+    }
+
+    if (type === "number") {
+      if (typeof value !== "number" || !Number.isFinite(value)) {
+        hasInvalidValue = true;
+
+        return;
+      }
+      values[field] = value;
+
+
+      return;
+    }
+
+    if (type === "objectId") {
+      if (typeof value !== "string" || !mongoose.isValidObjectId(value)) {
+        hasInvalidValue = true;
+        return;
+      }
+      values[field] = value.trim();
+
+
+    }
+  });
+
+  return { values, hasInvalidValue };
+
+};
+
 //Get all Orders
 
 const allOrders = async (req, res) => {
@@ -26,7 +80,24 @@ const allOrders = async (req, res) => {
 
 const OrdersByParams = async (req, res) => {
   try {
-    const order = await ORDER.find(req.body);
+    const { values: filters, hasInvalidValue } = getAllowedOrderFields(
+      req.body,
+      [
+        ["sellerId", "objectId"],
+        ["farmerId", "objectId"],
+        ["totalPrice", "number"],
+        ["status", "string"],
+        ["paymentAmount", "number"],
+        ["paymentStatus", "string"],
+      ]
+    );
+
+    if (hasInvalidValue || Object.keys(filters).length === 0) {
+      res.status(400).json({ msg: "Invalid order filters" });
+      return;
+    }
+
+    const order = await ORDER.find(filters);
 
     if (order.length <= 0) {
       res.status(404).json({ msg: "Not found!" });
@@ -35,7 +106,7 @@ const OrdersByParams = async (req, res) => {
 
     res.status(200).json({ msg: "Success", data: order });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
@@ -63,7 +134,20 @@ const OrdersById = async (req, res) => {
 const updateOrders = async (req, res) => {
   try {
     const { id } = req.params;
-    const order = await ORDER.findByIdAndUpdate(id, req.body, { new: true });
+    const { values: updates, hasInvalidValue } = getAllowedOrderFields(
+      req.body,
+      [
+        ["status", "string"],
+        ["paymentStatus", "string"],
+      ]
+    );
+
+    if (hasInvalidValue || Object.keys(updates).length === 0) {
+      res.status(400).json({ msg: "Invalid order update" });
+      return;
+    }
+
+    const order = await ORDER.findByIdAndUpdate(id, updates, { new: true });
     if (!order) {
       res.status(404).json({ msg: "Order not Updated!" });
 
@@ -72,7 +156,7 @@ const updateOrders = async (req, res) => {
 
     res.status(200).json({ msg: "Update Successful", data: order });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
