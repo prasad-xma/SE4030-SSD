@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { getAuthUser, logout } from "@/Common/authSession";
 
 const NavBar = () => {
 
@@ -10,16 +10,13 @@ const NavBar = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const navigate = useNavigate();
 
-    // chekc the authToken is present
     useEffect(() => {
-        const token = Cookies.get("authToken");
-        setIsAuthenticated(!!token);
+        setIsAuthenticated(!!getAuthUser());
     }, []);
 
     // logout function
-    const handleLogout = () => {
-        // remove token from cookies
-        Cookies.remove("authToken");
+    const handleLogout = async () => {
+        await logout();
         setIsAuthenticated(false);
         navigate("/");
     };

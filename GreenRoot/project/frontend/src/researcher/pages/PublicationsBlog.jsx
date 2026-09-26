@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
 import BlogHeader from '../components/BlogHeader';
 import BlogFooter from '../components/BlogFooter';
 import pdfIcon from '../extras/pdf.png';
@@ -13,9 +12,6 @@ export default function PublicationsBlog() {
     setLoading(true);
     try {
       const response = await fetch('http://localhost:3000/api/researcher/publications', {
-        headers: {
-          'Authorization': `Bearer ${Cookies.get('authToken')}`
-        },
         credentials: 'include'
       });
       

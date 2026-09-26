@@ -9,11 +9,11 @@ const createJWToken = (userId, role) => {
 // verify the token
 const verifyJWT = (token) => {
     try {
-        const payload = jwt.verify(token, process.env.JWT_SECRET);
+        const payload = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
         return payload;
 
     } catch (error) {
-        return { error: 'Invalid or expired token' };
+        return null;
     }
 }
 

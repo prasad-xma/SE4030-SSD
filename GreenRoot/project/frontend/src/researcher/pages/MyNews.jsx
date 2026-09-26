@@ -4,7 +4,6 @@ import NewsForm from '../components/NewsForm';
 import NewsCardR from '../components/NewsCardR';
 import { useNavigate } from 'react-router-dom';
 import { getResearcherId } from '../utils/auth';
-import Cookies from 'js-cookie';
 
 export default function MyNews() {
 
@@ -25,9 +24,6 @@ export default function MyNews() {
     const fetchNews = async () => {
       try {
         const response = await fetch(`http://localhost:3000/api/researcher/news/my-news`, {
-          headers: {
-            'Authorization': `Bearer ${Cookies.get('authToken')}`
-          },
           credentials: 'include'
         });
         

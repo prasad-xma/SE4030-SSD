@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Cookies from "js-cookie";
+import { getAuthUser } from "@/Common/authSession";
 import Swal from "sweetalert2";
 
 const CreateQuestion = () => {
@@ -10,16 +10,10 @@ const CreateQuestion = () => {
     const [questions, setQuestions] = useState([]);
 
     useEffect(() => {
-        // Decode token and get userId
-        const authToken = Cookies.get("authToken");
-        if (authToken) {
-            try {
-                const decodedToken = JSON.parse(atob(authToken.split(".")[1])); // Decode JWT
-                setUserId(decodedToken.userId);
-                fetchUserQuestions(decodedToken.userId);
-            } catch (error) {
-                console.error("Error decoding token:", error);
-            }
+        const user = getAuthUser();
+        if (user) {
+            setUserId(user.userId);
+            fetchUserQuestions(user.userId);
         }
     }, []);
 

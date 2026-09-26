@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import Cookies from "js-cookie";
+import { getAuthUser } from "@/Common/authSession";
 import Swal from "sweetalert2";
 import Footer from "@/Common/Footer";
 import NavBar2 from "@/Common/NavBar2";
@@ -13,16 +13,10 @@ const AskQuestion = () => {
     const [questions, setQuestions] = useState([]);
 
     useEffect(() => {
-        const authToken = Cookies.get("authToken");
-        if (authToken) {
-            try {
-                const decodedToken = JSON.parse(atob(authToken.split(".")[1])); // Decode JWT
-                setUserId(decodedToken.userId);
-                fetchUserQuestions(decodedToken.userId);
-                console.log(decodedToken.userId);
-            } catch (error) {
-                console.error("Error decoding token:", error);
-            }
+        const user = getAuthUser();
+        if (user) {
+            setUserId(user.userId);
+            fetchUserQuestions(user.userId);
         }
     }, []);
 

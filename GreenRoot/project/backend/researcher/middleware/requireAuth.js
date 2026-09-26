@@ -10,7 +10,11 @@ module.exports = function authenticateResearcher(req, res, next) {
 
     try {
         const payload = verifyJWT(token);
-        
+
+        if (!payload) {
+            return res.status(401).json({ error: "Invalid or expired token" });
+        }
+
         if (payload.role !== 'researcher') {
             return res.status(403).json({ error: "Access restricted to researchers" });
         }

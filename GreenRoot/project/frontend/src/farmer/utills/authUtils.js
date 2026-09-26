@@ -1,17 +1,6 @@
-import Cookies from "js-cookie";
+import { getAuthUser } from "@/Common/authSession";
 
 export const getUserIdFromToken = () => {
-  const token = Cookies.get("authToken");
-
-  if (token) {
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1])); // Decode JWT payload
-      return payload.role === "farmer" ? payload.userId : null; // Ensure correct role
-    } catch (error) {
-      console.error("Error decoding token:", error);
-      return null;
-    }
-  }
-
-  return null;
+  const user = getAuthUser();
+  return user?.role === "farmer" ? user.userId : null; // Ensure correct role
 };

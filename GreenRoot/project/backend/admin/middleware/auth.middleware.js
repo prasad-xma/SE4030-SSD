@@ -20,7 +20,7 @@ const authenticateUser = (req, res, next) => {
         const { authToken } = req.cookies;
 
         if (!authToken) {
-            return res.status(400).json({ err: `Authentication invalid!` });
+            return res.status(401).json({ err: `Authentication invalid!` });
         }
 
         const payload = verifyJWT(authToken);
@@ -33,7 +33,7 @@ const authenticateUser = (req, res, next) => {
         next();
 
     } catch (err) {
-        res.status(401).json({ message: err });
+        res.status(401).json({ err: `Authentication invalid!` });
     }
 
 };

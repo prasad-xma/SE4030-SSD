@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../extras/landing.css"
 import axios from "axios";
-import Cookies from "js-cookie";
+import { setAuthUser } from "@/Common/authSession";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -19,17 +19,17 @@ function Cus_LandingBanner() {
       })
       .then((res) => {
         if (res.status === 200) {
-          const token = Cookies.get("authToken"); // Replace "jwt" with the actual cookie name
-          if (token) {
-            const payload = JSON.parse(atob(token.split(".")[1]));
+          const user = res.data.data;
+          if (user) {
+            setAuthUser(user);
 
-            if (payload.role == "customer") {
+            if (user.role == "customer") {
               navigate(`/Customer`);
             } else {
               alert("Wrong user portal");
             }
           } else {
-            alert("No token present");
+            alert("Login failed");
           }
         }
       })
