@@ -7,38 +7,30 @@ const {
   getSingleUser,
   getUserCounts,
 } = require("../controller/user.controller");
+
+// 1. Import authentication and authorization middleware
+const {
+  authenticateUser,
+  authorizePermissions,
+} = require("../middleware/auth.middleware.js");
+
 const router = express.Router();
 
+// 2. Protect all routes in this file with AuthN and AuthZ (admin only)
+router.use(authenticateUser);
+router.use(authorizePermissions("admin"));
 
-
-router.get('/allusers', getUserCounts);
-
-
-// get all admins
+// User management endpoints
+router.get("/allusers", getUserCounts);
 router.get("/admins", (req, res) => getUsersByRole(req, res, "admin"));
-// get all farmers
 router.get("/farmers", (req, res) => getUsersByRole(req, res, "farmer"));
-// get all sellers
 router.get("/sellers", (req, res) => getUsersByRole(req, res, "seller"));
-// get all customers
 router.get("/customers", (req, res) => getUsersByRole(req, res, "customer"));
-// get all researchers
-router.get("/researchers", (req, res) =>
-  getUsersByRole(req, res, "researcher")
-);
-// get all deliveryPerson
-router.get("/deliveryPerson", (req, res) =>
-  getUsersByRole(req, res, "deliveryPerson")
-);
-// get single user
+router.get("/researchers", (req, res) => getUsersByRole(req, res, "researcher"));
+router.get("/deliveryPerson", (req, res) => getUsersByRole(req, res, "deliveryPerson"));
 router.get("/:id", getSingleUser);
-// create a user
 router.post("/create", createUser);
-// update user
 router.put("/update/:id", updateUser);
-// delete user
 router.delete("/delete/:id", deleteUser);
-
-
 
 module.exports = router;
