@@ -54,6 +54,10 @@ const Register = () => {
 
     };
 
+    const handleGoogleSignup = () => {
+        window.location.href = "http://localhost:3000/api/auth/google";
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -112,9 +116,10 @@ const Register = () => {
                 icon: "success"
             });
         } catch (error) {
+            const data = error.response?.data || {};
             Swal.fire({
                 title: "Error during registration!",
-                text: error.response?.data.message || "Please try again later.",
+                text: data.err || data.error || data.msg || "Please try again later.",
                 icon: "error",
             });
             console.log(error);
@@ -146,6 +151,14 @@ const Register = () => {
                             <p className="mt-4 text-gray-500">
                                 Select your role to get started.
                             </p>
+
+                            <button
+                                type="button"
+                                onClick={handleGoogleSignup}
+                                className="mt-6 w-full md:w-auto px-6 py-3 font-semibold text-gray-800 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50"
+                            >
+                                Sign up with Google (customer account)
+                            </button>
 
                             {/* Role Selection Buttons */}
                             <div className="mt-6">
