@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useState } from "react";
 import axios from "axios";
 import { setAuthUser } from "@/Common/authSession";
@@ -10,9 +10,25 @@ import Footer from "./home/home_components/Footer";
 // logo
 import Logo from "/Greenroots-logo-color.png";
 
+const googleErrors = {
+  google_cancelled: "Google sign in was cancelled.",
+  google_state: "Google sign in failed. Please try again.",
+  google_email: "Your Google email is not verified.",
+  google_no_account: "No GreenRoots account uses this Google email. Please sign up first.",
+  google_inactive: "This account is not active.",
+  google_mismatch: "This email is already linked to a different Google account.",
+  google_signup_expired: "Your Google sign up session expired. Please try again.",
+  google_failed: "Google sign in failed. Please try again.",
+};
+
 const Login = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState("");
+  const [searchParams] = useSearchParams();
+  const [error, setError] = useState(googleErrors[searchParams.get("error")] || "");
+
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:3000/api/auth/google";
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -90,7 +106,7 @@ const Login = () => {
               <div className="mt-12 flex flex-col items-center">
                 <div className="w-full flex-1 mt-8">
                   <div className="flex flex-col items-center">
-                    <button className="w-full max-w-xs font-bold shadow-sm rounded-lg py-3 bg-green-100 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out focus:outline-none hover:shadow focus:shadow-sm focus:shadow-outline">
+                    <button type="button" onClick={handleGoogleLogin} className="w-full max-w-xs font-bold shadow-sm rounded-lg py-3 bg-green-100 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out focus:outline-none hover:shadow focus:shadow-sm focus:shadow-outline">
                       <div className="bg-white p-2 rounded-full">
                         <svg className="w-4" viewBox="0 0 533.5 544.3">
                           <path

@@ -67,6 +67,7 @@ import PublicationsBlog from "./researcher/pages/PublicationsBlog";
 /* Admin pages */
 import {
   LoginPage,
+  GoogleLoginSuccess,
   RegisterPage,
   AdminDashboard,
   FarmerManagement,
@@ -181,6 +182,7 @@ function App() {
       {/* Auth Router */}
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/register" element={<RegisterPage />} />
+      <Route path="/auth/google/success" element={<GoogleLoginSuccess />} />
 
       {/* Admin Routers */}
       <Route path="/admin/:id/dashboard" element={<AdminDashboard />} />

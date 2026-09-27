@@ -1,4 +1,5 @@
 export { default as LoginPage } from "./Login";
+export { default as GoogleLoginSuccess } from "./GoogleLoginSuccess";
 export { default as RegisterPage } from "./Register";
 export { default as AdminDashboard } from "./AdminDash";
 export { default as UserManagement } from "./UserManagement";
