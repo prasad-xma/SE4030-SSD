@@ -54,6 +54,7 @@ const { authenticateUser } = require("./admin/middleware/auth.middleware.js");
 
 const paymentManage = require("./common/routes/paymentRoute.js");
 const otpManage = require("./common/routes/otpRoute.js");
+const externalManage = require("./common/routes/externalRoute.js");
 
 //Customer route import
 const orderManage = require("./customer/routes/orderRoute.js");
@@ -120,6 +121,7 @@ app.use("/api/v1/user/b", userManage_B);
 //Use OTP route
 
 app.use("/api/v1/otp", otpManage);
+app.use("/api/v1/external", externalManage);
 
 //customer Routes
 app.use("/api/customer/orders", orderManage);
