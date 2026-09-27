@@ -1,6 +1,35 @@
 const publication = require('../model/publications')
 const mongoose = require('mongoose')
 const fs = require('fs')
+const path = require('path')
+
+const publicationStorageRoot = path.join(__dirname, '..', 'private_uploads', 'publications')
+
+const removeUploadedFile = async (filePath) => {
+    if (!filePath) {
+        return
+    }
+
+    try {
+        await fs.promises.unlink(filePath)
+    } catch (error) {
+        if (error.code !== 'ENOENT') {
+            console.error('Unable to remove invalid publication upload:', error.message)
+        }
+    }
+}
+
+const hasPdfSignature = async (filePath) => {
+    const signature = Buffer.alloc(5)
+    const fileHandle = await fs.promises.open(filePath, 'r')
+
+    try {
+        const { bytesRead } = await fileHandle.read(signature, 0, signature.length, 0)
+        return bytesRead === signature.length && signature.toString('ascii') === '%PDF-'
+    } finally {
+        await fileHandle.close()
+    }
+}
 
 //Get all publications
 const getPublications = async (req, res) => {
@@ -26,15 +55,23 @@ const getUserPublications = async (req, res) => {
 
 //create new publication
 const createPublication = async (req, res) => {
-
     let newPath = null
+    let uploadedFilePath = null
+
     if (req.file) {
-        const {originalname,path} = req.file;
-        const parts = originalname.split('.')
-        const ext = parts[parts.length - 1]
-        newPath = path+'.'+ext
-        fs.renameSync(path, newPath)
-        
+        uploadedFilePath = req.file.path
+
+        try {
+            if (!(await hasPdfSignature(uploadedFilePath))) {
+                await removeUploadedFile(uploadedFilePath)
+                return res.status(400).json({ error: 'Uploaded file is not a valid PDF' })
+            }
+        } catch (error) {
+            await removeUploadedFile(uploadedFilePath)
+            return res.status(400).json({ error: 'Unable to validate uploaded PDF' })
+        }
+
+        newPath = path.join('private_uploads', 'publications', req.file.filename)
     }
 
     const {title, author, user_id } = req.body
@@ -43,6 +80,7 @@ const createPublication = async (req, res) => {
         const createPub = await publication.create({title, author, user_id, file: newPath})
         res.status(200).json(createPub)
     } catch (error) {
+        await removeUploadedFile(uploadedFilePath)
         res.status(400).json({error: error.message})
     }
 }
@@ -74,6 +112,11 @@ const downloadFile = async (req, res) => {
         }
 
         const filePath = path.join(__dirname, '..', pub.file);
+
+        if (!filePath.startsWith(`${publicationStorageRoot}${path.sep}`)) {
+            return res.status(400).json({ error: "Invalid publication file path" });
+        }
+
         res.download(filePath); // Browser will prompt download
     } catch (error) {
         res.status(500).json({ error: error.message });
