@@ -141,4 +141,5 @@ module.exports = {
     login,
     logout,
     getCurrentUser,
+    authCookieOptions,
 };
