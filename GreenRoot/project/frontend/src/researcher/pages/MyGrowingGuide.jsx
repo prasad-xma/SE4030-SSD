@@ -3,7 +3,6 @@ import GrowingGuideForm from '../components/GrowingGuideForm'
 import SidebarResearcher from '../components/SidebarResearcher'
 import MyGrowingguideCard from '../components/MyGrowingguideCard'
 import { useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
 import { getResearcherId } from '../utils/auth';
 
 export default function MyGrowingGuide() {
@@ -26,9 +25,6 @@ export default function MyGrowingGuide() {
         const fetchPosts = async () => {
           try {
             const response = await fetch(`http://localhost:3000/api/researcher/posts/my-posts`, {
-              headers: {
-                'Authorization': `Bearer ${Cookies.get('authToken')}`
-              },
               credentials: 'include'
             });
             

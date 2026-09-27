@@ -84,13 +84,13 @@ const emailSender = (req, res) => {
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "greenrootp@gmail.com",
-        pass: "weifglbjhwgzofym",
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     let mailOptions = {
-      from: "greenrootp@gmail.com",
+      from: process.env.EMAIL_USER,
       to: email,
       subject: "Greenroot Bulk order management",
       text: `orderID: ${id}     status: ${status}`,

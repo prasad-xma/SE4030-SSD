@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import logo from "./new/Greenroots-logo-color.png";
 import { Link, useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
+import { getAuthUser, logout } from "@/Common/authSession";
 
 const NavBar2 = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -10,26 +10,19 @@ const NavBar2 = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
 
-  // check if the authToken is present
   useEffect(() => {
-    const token = Cookies.get("authToken");
-    setIsAuthenticated(!!token);
+    setIsAuthenticated(!!getAuthUser());
   }, []);
 
   // logout function
-  const handleLogout = () => {
-    Cookies.remove("authToken");
+  const handleLogout = async () => {
+    await logout();
     setIsAuthenticated(false);
     navigate("/");
   }
 
   const payload = () => {
-    const token = Cookies.get("authToken");
-    if (token) {
-      const decodedPayload = JSON.parse(atob(token.split(".")[1]));
-      return decodedPayload;
-    }
-    return null;
+    return getAuthUser();
   }
 
   return (

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import SidebarResearcher from '../components/SidebarResearcher';
 import { useNavigate } from 'react-router-dom';
 import { getResearcherId } from '../utils/auth';
-import Cookies from 'js-cookie';
 
 export default function Publications() {
     const [title, setTitle] = useState('');
@@ -31,9 +30,6 @@ export default function Publications() {
         setIsFetching(true);
         try {
             const response = await fetch('http://localhost:3000/api/researcher/publications/my-publications', {
-                headers: {
-                    'Authorization': `Bearer ${Cookies.get('authToken')}`
-                },
                 credentials: 'include'
             });
             
@@ -56,9 +52,6 @@ export default function Publications() {
         try {
             const response = await fetch(`http://localhost:3000/api/researcher/publications/${pubId}`, {
                 method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${Cookies.get('authToken')}`
-                },
                 credentials: 'include'
             });
     

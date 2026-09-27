@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { getAuthUser } from "@/Common/authSession";
 
 const ReplyQuestion = () => {
     const location = useLocation();
@@ -14,21 +14,12 @@ const ReplyQuestion = () => {
             return alert("reply cannot be empty!");
         }
 
-        const token = Cookies.get("authToken");
-        if (!token) {
+        const user = getAuthUser();
+        if (!user) {
             return alert("Unauthorized Please Log in!");
         }
 
-        let adminId; // variable to store adminID
-
-        try {
-            const payload = JSON.parse(atob(token.split(".")[1]));
-            adminId = payload.userId;
-
-        } catch (error) {
-            console.error(error);
-            return alert("Invalid session please login again...");
-        }
+        const adminId = user.userId;
 
         try {
             await axios.post(`http://localhost:3000/api/qna/question/reply/${question._id}`, {

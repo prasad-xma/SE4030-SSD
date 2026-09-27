@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
-import Cookies from "js-cookie";
+import { getAuthUser } from "@/Common/authSession";
 
 const QuestionCard = ({ question }) => {
     const [adminReply, setAdminReply] = useState("");
@@ -21,9 +21,7 @@ const QuestionCard = ({ question }) => {
     // Handle reply submission
     const handleReplySubmit = async (replyText) => {
         try {
-            const token = Cookies.get("authToken");
-            const payload = JSON.parse(atob(token.split(".")[1]));
-            const adminId = payload.userId;
+            const adminId = getAuthUser()?.userId;
 
             await axios.post(`http://localhost:3000/api/qna/question/reply/${question._id}`, {
                 adminId,

@@ -2,6 +2,13 @@ const User = require("../model/userModel.js");
 const { hashPassword, comparePassword } = require("../utils/passwordUtils.js");
 const { createJWToken } = require("../utils/tokenUtils.js");
 
+const authCookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/",
+};
+
 // nodemailer
 const nodemailer = require('nodemailer');
 
@@ -35,13 +42,13 @@ const register = async (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'greenrootp@gmail.com',
-                pass: 'weifglbjhwgzofym',
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
             }
         });
 
         const mailOptions = {
-            from: 'greenrootp@gmail.com',
+            from: process.env.EMAIL_USER,
             to: email,
             subject: 'Welcome to GreenRoots',
             html: `
@@ -99,8 +106,7 @@ const login = async (req, res) => {
 
         // set the token into a  cookie
         res.cookie("authToken", token, {
-            httpOnly: false,
-            secure: process.env.NODE_ENV === "production",
+            ...authCookieOptions,
             maxAge: 24 * 60 * 60 * 1000,
         });
 
@@ -118,10 +124,7 @@ const login = async (req, res) => {
 const logout = (req, res) => {
     try {
         // clear the cookie
-        res.clearCookie("authToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-        });
+        res.clearCookie("authToken", authCookieOptions);
 
         res.status(200).json({ msg: `Logout successful!` });
     } catch (error) {
@@ -129,8 +132,13 @@ const logout = (req, res) => {
     }
 };
 
+const getCurrentUser = (req, res) => {
+    res.status(200).json({ data: { id: req.user.userId, role: req.user.role } });
+};
+
 module.exports = {
     register,
     login,
     logout,
+    getCurrentUser,
 };

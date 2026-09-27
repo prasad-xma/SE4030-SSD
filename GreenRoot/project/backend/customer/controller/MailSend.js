@@ -6,14 +6,14 @@ const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
   auth: {
-    user: "greenrootp@gmail.com",
-    pass: "weifglbjhwgzofym",
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
 });
 
 function sendEmail(to, subject, msg) {
   const mailOptions = {
-     from: "greenrootp@gmail.com",
+     from: process.env.EMAIL_USER,
     to: to,
     subject: subject,
     html: msg,
