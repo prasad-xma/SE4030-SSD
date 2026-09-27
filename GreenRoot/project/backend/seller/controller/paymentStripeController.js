@@ -1,45 +1,77 @@
 const stripe = require('stripe')(
   process.env.SELLER_STRIPE_SECRET || process.env.STRIPE_SECRET
 );
+const mongoose = require('mongoose');
+const Cart = require('../model/cartModel');
+const Crop = require('../../farmer/model/cropModel');
 
 async function createCheckoutSession(req, res) {
   try {
-    const { cartItems, totalAmount, cartId, userId } = req.body;
+    const { cartId } = req.body;
 
-    console.log('Cart Items:', cartItems);
-    console.log('Total Amount:', totalAmount);
-
-    if (!cartItems || cartItems.length === 0 || !totalAmount) {
-      return res.status(400).json({ error: 'Invalid cart data or total amount' });
+    if (!cartId || !mongoose.Types.ObjectId.isValid(cartId)) {
+      return res.status(400).json({ error: 'A valid cartId is required' });
     }
 
-    console.log('Metadata:', { cartId, userId });
+    const cart = await Cart.findById(cartId);
 
-    
-    const line_items = cartItems.map(item => ({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: item.name,
-          images: item.cropId.image ? [item.cropId.image] : [], // Ensure images exist
+    if (!cart) {
+      return res.status(404).json({ error: 'Cart not found' });
+    }
+
+    if (!cart.items || cart.items.length === 0) {
+      return res.status(400).json({ error: 'Cannot checkout an empty cart' });
+    }
+
+    const line_items = [];
+    let calculatedTotal = 0;
+
+    for (const item of cart.items) {
+      if (!item.cropId || !mongoose.Types.ObjectId.isValid(item.cropId)) {
+        return res.status(400).json({ error: 'Cart contains an invalid crop reference' });
+      }
+
+      const crop = await Crop.findById(item.cropId);
+
+      if (!crop) {
+        return res.status(404).json({ error: 'A crop in the cart no longer exists' });
+      }
+
+      if (!Number.isFinite(crop.price) || crop.price <= 0) {
+        return res.status(400).json({ error: 'A crop in the cart has an invalid price' });
+      }
+
+      const unitAmount = Math.round(crop.price * 100);
+
+      if (!Number.isSafeInteger(unitAmount) || unitAmount <= 0) {
+        return res.status(400).json({ error: 'A crop in the cart has an invalid price' });
+      }
+
+      calculatedTotal += unitAmount;
+      line_items.push({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: crop.name,
+            images: crop.image ? [crop.image] : [],
+          },
+          unit_amount: unitAmount,
         },
-        unit_amount: Math.round(item.price * 100), // Ensure whole number
-      },
-      quantity: item.quantity || 1,
-    }));
+        quantity: 1,
+      });
+    }
 
-    
-
-   
+    const sellerId = cart.sellerId.toString();
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
-      success_url: `http://localhost:5173/seller/${userId}/placeOrder?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:5173/seller/${userId}/Inventory`,
-      metadata: { 
+      success_url: `http://localhost:5173/seller/${sellerId}/placeOrder?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `http://localhost:5173/seller/${sellerId}/Inventory`,
+      metadata: {
         cartId, 
-        userId,
+        userId: sellerId,
+        totalAmount: calculatedTotal.toString(),
       },
     });
 
