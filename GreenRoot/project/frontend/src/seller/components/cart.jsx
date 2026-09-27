@@ -2,12 +2,12 @@ import React from "react";
 import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 
-// Initialize Stripe with your public key (replace with your actual key)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 const Cart = ({ cart, onClose, onRemoveItem }) => {
   const cartItems = cart ? cart.items : [];
-  const tot = cart.totalPrice; // The total price of the cart
+  const tot = cart.totalPrice; // Display-only cart total
   const cartID = cart._id
   const sellerId = cart.sellerId
 
@@ -21,19 +21,22 @@ const Cart = ({ cart, onClose, onRemoveItem }) => {
 
   const handleCheckout = async () => {
     try {
-      console.log("Checkout Started: ", cartItems, tot); // Debugging log
-      // Send cart items to backend to create Stripe Checkout session
+      console.log("Checkout Started: ", cartID);
       const response = await axios.post('http://localhost:3000/api/RetailSeller/payment/stripe', {
-        cartItems: cartItems,
-        totalAmount: tot, // Use 'tot' here instead of 'totalAmount'
-        cartId:cartID,
-        userId:sellerId,
+        cartId: cartID,
       });
 
       const { sessionId } = response.data;
 
+      if (!stripePromise) {
+        throw new Error("Stripe publishable key is not configured");
+      }
+
       // Ensure Stripe is loaded before redirecting
       const stripe = await stripePromise;
+      if (!stripe) {
+        throw new Error("Stripe could not be initialized");
+      }
       const { error } = await stripe.redirectToCheckout({ sessionId });
 
       if (error) {
