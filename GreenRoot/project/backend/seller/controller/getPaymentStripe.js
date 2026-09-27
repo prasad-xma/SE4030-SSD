@@ -1,4 +1,6 @@
-const stripe = require("stripe")(process.env.SELLER_STRIPE_SECRET);
+const stripe = require("stripe")(
+  process.env.SELLER_STRIPE_SECRET || process.env.STRIPE_SECRET
+);
 const Cart = require("../model/cartModel"); // ✅ Import Cart model
 
 const getPayment = async (req, res) => {
