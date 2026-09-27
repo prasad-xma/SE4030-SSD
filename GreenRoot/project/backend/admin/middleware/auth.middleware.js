@@ -1,9 +1,9 @@
 const { verifyJWT } = require("../utils/tokenUtils");
 
 const validateUser = (req, res, next) => {
-    const { firstName, lastName, address, phone, email, password, role } = req.body;
+    const { firstName, lastName, address, phone, email, password } = req.body;
 
-    if (!firstName || !lastName || !address || !phone || !email || !password || !role) {
+    if (!firstName || !lastName || !address || !phone || !email || !password ) {
         return res.status(400).json({ error: `All fields are required!` });
     }
 
