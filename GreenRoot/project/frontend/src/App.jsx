@@ -68,6 +68,7 @@ import PublicationsBlog from "./researcher/pages/PublicationsBlog";
 import {
   LoginPage,
   GoogleLoginSuccess,
+  GoogleCompleteSignup,
   RegisterPage,
   AdminDashboard,
   FarmerManagement,
@@ -183,6 +184,7 @@ function App() {
       <Route path="/auth/login" element={<LoginPage />} />
       <Route path="/auth/register" element={<RegisterPage />} />
       <Route path="/auth/google/success" element={<GoogleLoginSuccess />} />
+      <Route path="/auth/google/complete" element={<GoogleCompleteSignup />} />
 
       {/* Admin Routers */}
       <Route path="/admin/:id/dashboard" element={<AdminDashboard />} />
