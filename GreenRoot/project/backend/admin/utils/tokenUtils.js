@@ -17,4 +17,18 @@ const verifyJWT = (token) => {
     }
 }
 
-module.exports = { createJWToken, verifyJWT };
+const signupSecret = () => `${process.env.JWT_SECRET}.google-signup`;
+
+const createSignupToken = (data) => {
+    return jwt.sign(data, signupSecret(), { expiresIn: "15m" });
+}
+
+const verifySignupToken = (token) => {
+    try {
+        return jwt.verify(token, signupSecret(), { algorithms: ["HS256"] });
+    } catch (error) {
+        return null;
+    }
+}
+
+module.exports = { createJWToken, verifyJWT, createSignupToken, verifySignupToken };
