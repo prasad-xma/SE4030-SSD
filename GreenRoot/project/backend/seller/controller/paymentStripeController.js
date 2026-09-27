@@ -1,4 +1,4 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET);
+const stripe = require('stripe')(process.env.SELLER_STRIPE_SECRET);
 
 async function createCheckoutSession(req, res) {
   try {

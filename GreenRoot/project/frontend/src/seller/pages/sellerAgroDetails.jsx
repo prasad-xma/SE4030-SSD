@@ -14,7 +14,7 @@ const AgroDetails = () => {
     const fetchArticles = async () => {
       try {
         const response = await axios.get(
-          'https://newsapi.org/v2/everything?q=agriculture&language=en&sortBy=popularity&pageSize=10&apiKey=f80bdd65fe2c4a279b116d051f74e10d')
+          'http://localhost:3000/api/v1/external/news', { withCredentials: true })
         setArticles(response.data.articles); // <- fixed here (must be .articles, not whole response.data)
       } catch (error) {
         console.error('Error fetching articles:', error);
