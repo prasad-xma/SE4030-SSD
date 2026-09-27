@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const { OAuth2Client, CodeChallengeMethod } = require("google-auth-library");
 const User = require("../model/userModel.js");
-const { createJWToken } = require("../utils/tokenUtils.js");
+const { createJWToken, createSignupToken } = require("../utils/tokenUtils.js");
 const { authCookieOptions } = require("./auth.controller.js");
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -11,6 +11,13 @@ const oauthCookieOptions = {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/api/auth/google",
+};
+
+const signupCookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    path: "/api/auth/google/signup",
 };
 
 const getClient = () =>
@@ -85,9 +92,29 @@ const googleCallback = async (req, res) => {
             return redirectWithError(res, "google_email");
         }
 
-        const user = await User.findOne({ email: payload.email });
+        let user = await User.findOne({ googleId: payload.sub });
+
         if (!user) {
-            return redirectWithError(res, "google_no_account");
+            user = await User.findOne({ email: payload.email });
+
+            if (user && user.googleId && user.googleId !== payload.sub) {
+                return redirectWithError(res, "google_mismatch");
+            }
+
+            if (user) {
+                await User.updateOne({ _id: user._id }, { $set: { googleId: payload.sub } });
+            }
+        }
+
+        if (!user) {
+            const signupToken = createSignupToken({
+                sub: payload.sub,
+                email: payload.email,
+                firstName: payload.given_name || "",
+                lastName: payload.family_name || "",
+            });
+            res.cookie("google_signup", signupToken, { ...signupCookieOptions, maxAge: 15 * 60 * 1000 });
+            return res.redirect(`${FRONTEND_URL}/auth/google/complete`);
         }
 
         if (user.status && user.status !== "active") {
@@ -107,4 +134,4 @@ const googleCallback = async (req, res) => {
     }
 };
 
-module.exports = { googleLogin, googleCallback };
+module.exports = { googleLogin, googleCallback, signupCookieOptions };

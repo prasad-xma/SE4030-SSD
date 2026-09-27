@@ -39,6 +39,16 @@ const userSchema = new Schema({
         type: String,
         default: 'active'
     },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    authProvider: {
+        type: String,
+        enum: ['local', 'google'],
+        default: 'local'
+    },
 }, { timestamps: true });
 
 // Automatically remove sensitive password hash and internal fields on JSON serialization
