@@ -2,6 +2,32 @@ const mongoose = require("mongoose");
 
 const FIELD = require("../model/fieldModel");
 
+const getAllowedFieldFields = (source, fields) => {
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    return { values: {}, hasInvalidValue: true };
+  }
+
+  const values = {};
+  let hasInvalidValue = false;
+
+  fields.forEach(([field, type]) => {
+    if (Object.prototype.hasOwnProperty.call(source, field)) {
+      const value = source[field];
+      if (
+        (type === "string" && typeof value !== "string") ||
+        (type === "number" &&
+          (typeof value !== "number" || !Number.isFinite(value)))
+      ) {
+        hasInvalidValue = true;
+        return;
+      }
+      values[field] = type === "string" ? value.trim() : value;
+    }
+  });
+
+  return { values, hasInvalidValue };
+};
+
 //Get all fields
 
 const allFields = async (req, res) => {
@@ -23,7 +49,28 @@ const allFields = async (req, res) => {
 
 const fieldsByParams = async (req, res) => {
   try {
-    const fields = await FIELD.find(req.body);
+    const { values: filters, hasInvalidValue } = getAllowedFieldFields(
+      req.body,
+      [
+        ["xcordinate", "number"],
+        ["ycordinate", "number"],
+        ["city", "string"],
+        ["farmerID", "string"],
+      ]
+    );
+
+    if (
+      hasInvalidValue ||
+      Object.keys(filters).length === 0 ||
+      Object.entries(filters).some(
+        ([field, value]) => typeof value === "string" && value.length === 0
+      )
+    ) {
+      res.status(400).json({ msg: "Invalid field filters" });
+      return;
+    }
+
+    const fields = await FIELD.find(filters);
 
     if (fields.length <= 0) {
       res.status(404).json({ msg: "Not found!" });
@@ -32,7 +79,7 @@ const fieldsByParams = async (req, res) => {
 
     res.status(200).json({ msg: "Success", data: fields });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
@@ -77,7 +124,27 @@ const insertfield = async (req, res) => {
 const updateField = async (req, res) => {
   try {
     const { id } = req.params;
-    const fields = await FIELD.findByIdAndUpdate(id, req.body, { new: true });
+    const { values: updates, hasInvalidValue } = getAllowedFieldFields(
+      req.body,
+      [
+        ["xcordinate", "number"],
+        ["ycordinate", "number"],
+        ["city", "string"],
+      ]
+    );
+
+    if (
+      hasInvalidValue ||
+      Object.keys(updates).length === 0 ||
+      Object.values(updates).some(
+        (value) => typeof value === "string" && value.length === 0
+      )
+    ) {
+      res.status(400).json({ msg: "Invalid field update" });
+      return;
+    }
+
+    const fields = await FIELD.findByIdAndUpdate(id, updates, { new: true });
     if (!fields) {
       res.status(404).json({ msg: "field not Updated!" });
 
@@ -86,7 +153,7 @@ const updateField = async (req, res) => {
 
     res.status(200).json({ msg: "Update Successful", data: fields });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 

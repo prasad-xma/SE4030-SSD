@@ -2,6 +2,27 @@ const mongoose = require("mongoose");
 
 const SCHEDULE = require("../model/scheduleModel");
 
+const getAllowedScheduleFields = (source, fields) => {
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    return { values: {}, hasInvalidValue: true };
+  }
+
+  const values = {};
+  let hasInvalidValue = false;
+
+  fields.forEach((field) => {
+    if (Object.prototype.hasOwnProperty.call(source, field)) {
+      if (typeof source[field] !== "string") {
+        hasInvalidValue = true;
+        return;
+      }
+      values[field] = source[field].trim();
+    }
+  });
+
+  return { values, hasInvalidValue };
+};
+
 //Get all categories
 
 const allSCHEDULE = async (req, res) => {
@@ -23,7 +44,21 @@ const allSCHEDULE = async (req, res) => {
 
 const SCHEDULEByParams = async (req, res) => {
   try {
-    const CAT = await SCHEDULE.find(req.body);
+    const { values: filters, hasInvalidValue } = getAllowedScheduleFields(
+      req.body,
+      ["description", "status", "dueDate", "farmerID"]
+    );
+
+    if (
+      hasInvalidValue ||
+      Object.keys(filters).length === 0 ||
+      Object.values(filters).some((value) => value.length === 0)
+    ) {
+      res.status(400).json({ msg: "Invalid schedule filters" });
+      return;
+    }
+
+    const CAT = await SCHEDULE.find(filters);
 
     if (CAT.length <= 0) {
       res.status(404).json({ msg: "Not found!" });
@@ -32,7 +67,7 @@ const SCHEDULEByParams = async (req, res) => {
 
     res.status(200).json({ msg: "Success", data: CAT });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
@@ -77,7 +112,21 @@ const insertSCHEDULE = async (req, res) => {
 const updateSCHEDULE = async (req, res) => {
   try {
     const { id } = req.params;
-    const CAT = await SCHEDULE.findByIdAndUpdate(id, req.body, { new: true });
+    const { values: updates, hasInvalidValue } = getAllowedScheduleFields(
+      req.body,
+      ["description", "status", "dueDate"]
+    );
+
+    if (
+      hasInvalidValue ||
+      Object.keys(updates).length === 0 ||
+      Object.values(updates).some((value) => value.length === 0)
+    ) {
+      res.status(400).json({ msg: "Invalid schedule update" });
+      return;
+    }
+
+    const CAT = await SCHEDULE.findByIdAndUpdate(id, updates, { new: true });
     if (!CAT) {
       res.status(404).json({ msg: "SCHEDULE not Updated!" });
 
@@ -86,7 +135,7 @@ const updateSCHEDULE = async (req, res) => {
 
     res.status(200).json({ msg: "Update Successful", data: CAT });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 

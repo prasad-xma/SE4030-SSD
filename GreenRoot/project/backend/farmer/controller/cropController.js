@@ -2,6 +2,55 @@ const mongoose = require("mongoose");
 
 const CROP = require("../model/cropModel");
 
+const cropStringFields = [
+  "name",
+  "fertilizer",
+  "image",
+  "categoryID",
+  "farmerID",
+  "fieldID",
+  "overview",
+  "status",
+];
+const cropNumberFields = ["quantity", "price"];
+
+const getAllowedCropFields = (source) => {
+
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    return { values: {}, hasInvalidValue: true };
+
+
+  }
+
+  const values = {};
+  let hasInvalidValue = false;
+
+  cropStringFields.forEach((field) => {
+    if (Object.prototype.hasOwnProperty.call(source, field)) {
+      if (typeof source[field] !== "string") {
+        hasInvalidValue = true;
+        return;
+      }
+      values[field] = source[field];
+    }
+  });
+
+  cropNumberFields.forEach((field) => {
+    if (Object.prototype.hasOwnProperty.call(source, field)) {
+      if (typeof source[field] !== "number" || !Number.isFinite(source[field])) {
+        hasInvalidValue = true;
+        return;
+      }
+      values[field] = source[field];
+    }
+
+  });
+
+
+  
+  return { values, hasInvalidValue };
+};
+
 //Get all crops
 
 const allCrops = async (req, res) => {
@@ -23,7 +72,14 @@ const allCrops = async (req, res) => {
 
 const cropsByParams = async (req, res) => {
   try {
-    const crops = await CROP.find(req.body);
+    const { values: filters, hasInvalidValue } = getAllowedCropFields(req.body);
+
+    if (hasInvalidValue || Object.keys(filters).length === 0) {
+      res.status(400).json({ msg: "Invalid crop filters" });
+      return;
+    }
+
+    const crops = await CROP.find(filters);
 
     if (crops.length <= 0) {
       res.status(404).json({ msg: "Not found!" });
@@ -32,7 +88,7 @@ const cropsByParams = async (req, res) => {
 
     res.status(200).json({ msg: "Success", data: crops });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
@@ -77,7 +133,14 @@ const insertCrop = async (req, res) => {
 const updateCrop = async (req, res) => {
   try {
     const { id } = req.params;
-    const crops = await CROP.findByIdAndUpdate(id, req.body, { new: true });
+    const { values: updates, hasInvalidValue } = getAllowedCropFields(req.body);
+
+    if (hasInvalidValue || Object.keys(updates).length === 0) {
+      res.status(400).json({ msg: "Invalid crop update" });
+      return;
+    }
+
+    const crops = await CROP.findByIdAndUpdate(id, updates, { new: true });
     if (!crops) {
       res.status(404).json({ msg: "Crop not Updated!" });
 
@@ -86,7 +149,7 @@ const updateCrop = async (req, res) => {
 
     res.status(200).json({ msg: "Update Successful", data: crops });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 

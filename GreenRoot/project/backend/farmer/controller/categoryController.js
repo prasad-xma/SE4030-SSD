@@ -2,6 +2,27 @@ const mongoose = require("mongoose");
 
 const CATEGORY = require("../model/categoryModel");
 
+const getAllowedCategoryFields = (source, fields) => {
+  if (!source || typeof source !== "object" || Array.isArray(source)) {
+    return { values: {}, hasInvalidValue: true };
+  }
+
+  const values = {};
+  let hasInvalidValue = false;
+
+  fields.forEach((field) => {
+    if (Object.prototype.hasOwnProperty.call(source, field)) {
+      if (typeof source[field] !== "string") {
+        hasInvalidValue = true;
+        return;
+      }
+      values[field] = source[field].trim();
+    }
+  });
+
+  return { values, hasInvalidValue };
+};
+
 //Get all categories
 
 const allCategories = async (req, res) => {
@@ -23,7 +44,21 @@ const allCategories = async (req, res) => {
 
 const CATEGORYByParams = async (req, res) => {
   try {
-    const CAT = await CATEGORY.find(req.body);
+    const { values: filters, hasInvalidValue } = getAllowedCategoryFields(
+      req.body,
+      ["name", "image"]
+    );
+
+    if (
+      hasInvalidValue ||
+      Object.keys(filters).length === 0 ||
+      Object.values(filters).some((value) => value.length === 0)
+    ) {
+      res.status(400).json({ msg: "Invalid category filters" });
+      return;
+    }
+
+    const CAT = await CATEGORY.find(filters);
 
     if (CAT.length <= 0) {
       res.status(404).json({ msg: "Not found!" });
@@ -32,7 +67,7 @@ const CATEGORYByParams = async (req, res) => {
 
     res.status(200).json({ msg: "Success", data: CAT });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
@@ -77,7 +112,21 @@ const insertCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const CAT = await CATEGORY.findByIdAndUpdate(id, req.body, { new: true });
+    const { values: updates, hasInvalidValue } = getAllowedCategoryFields(
+      req.body,
+      ["name", "image"]
+    );
+
+    if (
+      hasInvalidValue ||
+      Object.keys(updates).length === 0 ||
+      Object.values(updates).some((value) => value.length === 0)
+    ) {
+      res.status(400).json({ msg: "Invalid category update" });
+      return;
+    }
+
+    const CAT = await CATEGORY.findByIdAndUpdate(id, updates, { new: true });
     if (!CAT) {
       res.status(404).json({ msg: "Category not Updated!" });
 
@@ -86,7 +135,7 @@ const updateCategory = async (req, res) => {
 
     res.status(200).json({ msg: "Update Successful", data: CAT });
   } catch (e) {
-    res.status(500).json({ msg: "Server error", error: e.message });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
