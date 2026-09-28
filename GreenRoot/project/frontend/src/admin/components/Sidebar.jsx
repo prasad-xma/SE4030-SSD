@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Home, Users, Folder, Calendar, BarChart, Settings } from "lucide-react";
+import { Menu, X, Home, Users, Folder, Calendar, BarChart, Settings, ShieldCheck } from "lucide-react";
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +11,7 @@ const Sidebar = () => {
     { name: "Questions", icon: <Folder className="w-6 h-6" />, link: "/admin/question-dash" },
     { name: "Calendar", icon: <Calendar className="w-6 h-6" />, link: "/admin/calendar" },
     { name: "Reports", icon: <BarChart className="w-6 h-6" />, link: "/admin/report-dash" },
+    { name: "Auth Logs", icon: <ShieldCheck className="w-6 h-6" />, link: "/admin/auth-logs" },
     { name: "Settings", icon: <Settings className="w-6 h-6" />, link: "/admin/settings" },
   ];
 

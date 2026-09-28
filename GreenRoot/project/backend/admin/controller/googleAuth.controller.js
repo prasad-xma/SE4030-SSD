@@ -3,6 +3,7 @@ const { OAuth2Client, CodeChallengeMethod } = require("google-auth-library");
 const User = require("../model/userModel.js");
 const { createJWToken, createSignupToken } = require("../utils/tokenUtils.js");
 const { authCookieOptions } = require("./auth.controller.js");
+const { logAuthEvent } = require("../utils/authLogger.js");
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
@@ -27,7 +28,8 @@ const getClient = () =>
         process.env.GOOGLE_REDIRECT_URI
     );
 
-const redirectWithError = (res, reason) => {
+const redirectWithError = (req, res, reason, email = "") => {
+    logAuthEvent(req, { event: "google_login", success: false, reason, email });
     res.redirect(`${FRONTEND_URL}/auth/login?error=${reason}`);
 };
 
@@ -58,7 +60,7 @@ const googleLogin = async (req, res) => {
         res.redirect(url);
     } catch (error) {
         console.error("Google login error:", error.message);
-        redirectWithError(res, "google_failed");
+        redirectWithError(req, res, "google_failed");
     }
 };
 
@@ -71,11 +73,11 @@ const googleCallback = async (req, res) => {
     res.clearCookie("oauth_verifier", oauthCookieOptions);
 
     if (error || typeof code !== "string") {
-        return redirectWithError(res, "google_cancelled");
+        return redirectWithError(req, res, "google_cancelled");
     }
 
     if (!isSameState(state, savedState) || !codeVerifier) {
-        return redirectWithError(res, "google_state");
+        return redirectWithError(req, res, "google_state");
     }
 
     try {
@@ -89,7 +91,7 @@ const googleCallback = async (req, res) => {
         const payload = ticket.getPayload();
 
         if (!payload.email || !payload.email_verified) {
-            return redirectWithError(res, "google_email");
+            return redirectWithError(req, res, "google_email", payload.email);
         }
 
         let user = await User.findOne({ googleId: payload.sub });
@@ -98,7 +100,7 @@ const googleCallback = async (req, res) => {
             user = await User.findOne({ email: payload.email });
 
             if (user && user.googleId && user.googleId !== payload.sub) {
-                return redirectWithError(res, "google_mismatch");
+                return redirectWithError(req, res, "google_mismatch", payload.email);
             }
 
             if (user) {
@@ -114,11 +116,12 @@ const googleCallback = async (req, res) => {
                 lastName: payload.family_name || "",
             });
             res.cookie("google_signup", signupToken, { ...signupCookieOptions, maxAge: 15 * 60 * 1000 });
+            logAuthEvent(req, { event: "google_login", success: false, reason: "signup_required", email: payload.email });
             return res.redirect(`${FRONTEND_URL}/auth/google/complete`);
         }
 
         if (user.status && user.status !== "active") {
-            return redirectWithError(res, "google_inactive");
+            return redirectWithError(req, res, "google_inactive", payload.email);
         }
 
         const token = createJWToken(user._id, user.role);
@@ -127,10 +130,11 @@ const googleCallback = async (req, res) => {
             maxAge: 24 * 60 * 60 * 1000,
         });
 
+        logAuthEvent(req, { event: "google_login", success: true, email: payload.email, userId: user._id });
         res.redirect(`${FRONTEND_URL}/auth/google/success`);
     } catch (err) {
         console.error("Google callback error:", err.message);
-        redirectWithError(res, "google_failed");
+        redirectWithError(req, res, "google_failed");
     }
 };
 

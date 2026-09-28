@@ -64,6 +64,8 @@ import SinglePndPage from "./researcher/pages/SinglePndPage";
 import Publications from "./researcher/pages/Publications";
 import PublicationsBlog from "./researcher/pages/PublicationsBlog";
 
+import AuthLogs from "./admin/pages/AuthLogs";
+
 /* Admin pages */
 import {
   LoginPage,
@@ -189,6 +191,7 @@ function App() {
       {/* Admin Routers */}
       <Route path="/admin/:id/dashboard" element={<AdminDashboard />} />
       <Route path="/admin/user-management" element={<UserManagement />} />
+      <Route path="/admin/auth-logs" element={<AuthLogs />} />
       <Route
         path="/admin/user-management/farmer"
         element={<FarmerManagement />}
