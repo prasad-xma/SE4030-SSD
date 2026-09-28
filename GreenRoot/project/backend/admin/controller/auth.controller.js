@@ -1,6 +1,7 @@
 const User = require("../model/userModel.js");
 const { hashPassword, comparePassword } = require("../utils/passwordUtils.js");
 const { createJWToken } = require("../utils/tokenUtils.js");
+const { logAuthEvent } = require("../utils/authLogger.js");
 
 const authCookieOptions = {
     httpOnly: true,
@@ -14,7 +15,7 @@ const nodemailer = require('nodemailer');
 
 const register = async (req, res) => {
     try {
-        const { email, password, confirmPassword } = req.body;
+        const { email, password, confirmPassword, role } = req.body;
 
         // check if the password is match
         if (password !== confirmPassword) {
@@ -29,7 +30,7 @@ const register = async (req, res) => {
 
         // Check if the user is the first user in the database and if it is, update the role to admin
         const isFirstAccount = (await User.countDocuments()) == 0;
-        req.body.role = isFirstAccount ? "admin" : "customer";
+        req.body.role = isFirstAccount ? "admin" : role;
 
         // Hash the password
         const hashedPassword = await hashPassword(password);
@@ -82,19 +83,22 @@ const login = async (req, res) => {
         const { email, password } = req.body;
 
         if (!email || !password) {
+            logAuthEvent(req, { event: "password_login", success: false, reason: "missing_fields", email });
             return res.status(400).json({ err: `Email and password are required!` });
         }
 
         // find user
         const user = await User.findOne({ email });
         if (!user) {
+            logAuthEvent(req, { event: "password_login", success: false, reason: "user_not_found", email });
             return res.status(404).json({ err: `User not found!` });
         }
 
         // match the password
         const isPasswordMatch = await comparePassword(password, user.password);
         if (!isPasswordMatch) {
-            return res.status(400).json({ err: `Username or Password Invalid` });
+            logAuthEvent(req, { event: "password_login", success: false, reason: "wrong_password", email, userId: user._id });
+            return res.status(400).json({ err: `Invalid password!` });
         }
 
         // create a token with id and role
@@ -109,6 +113,8 @@ const login = async (req, res) => {
             ...authCookieOptions,
             maxAge: 24 * 60 * 60 * 1000,
         });
+
+        logAuthEvent(req, { event: "password_login", success: true, email, userId: user._id });
 
         // success message with the user data
         res.status(200).json({
