@@ -57,12 +57,22 @@ const AdminDash = () => {
                     </div>
 
                     {/* Report management Section */}
-                    <div className="mt-8 mb-10">
+                    <div className="mt-8 mb-6">
                         <Link
                             to={`/admin/report-dash`}
                             className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg"
                         >
                             Manage Reports
+                        </Link>
+                    </div>
+
+                    {/* Authentication Logs Section */}
+                    <div className="mt-8 mb-10">
+                        <Link
+                            to={`/admin/auth-logs`}
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-3 rounded-lg"
+                        >
+                            View Authentication Logs
                         </Link>
                     </div>
 

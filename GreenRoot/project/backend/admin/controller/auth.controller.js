@@ -15,7 +15,7 @@ const nodemailer = require('nodemailer');
 
 const register = async (req, res) => {
     try {
-        const { email, password, confirmPassword, role } = req.body;
+        const { email, password, confirmPassword } = req.body;
 
         // check if the password is match
         if (password !== confirmPassword) {
@@ -30,7 +30,7 @@ const register = async (req, res) => {
 
         // Check if the user is the first user in the database and if it is, update the role to admin
         const isFirstAccount = (await User.countDocuments()) == 0;
-        req.body.role = isFirstAccount ? "admin" : role;
+        req.body.role = isFirstAccount ? "admin" : "customer";
 
         // Hash the password
         const hashedPassword = await hashPassword(password);
